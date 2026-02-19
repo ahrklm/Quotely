@@ -1,0 +1,304 @@
+
+@if (quote(); as q) {
+  <div class="p-6 md:p-10 space-y-8">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <a routerLink="/quotes" class="text-sm font-medium text-blue-600 hover:underline flex items-center gap-1 mb-2">
+          <div [innerHTML]="iconService.getIcon('ChevronLeft')"></div>
+          back to quotes
+        </a>
+        <h1 class="text-4xl font-bold text-[#0800B9] leading-tight">{{ q.title }}</h1>
+        <p class="text-slate-500 font-medium mt-1">{{ projectName() }}</p>
+      </div>
+      <div class="flex items-center gap-4 self-start">
+        <span [class]="'px-3 py-1.5 text-xs font-bold rounded-full ' + getStatusClass(q.status)">
+          {{ q.status }}
+        </span>
+        <div class="text-right">
+          <p class="text-sm font-bold text-slate-700">QUOTE #{{ q.id.toUpperCase() }}</p>
+          <p class="text-xs text-slate-400">Updated: {{ q.updatedAt }}</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-5">
+        <div class="w-12 h-12 rounded-xl bg-green-50 text-green-600 flex items-center justify-center shrink-0" [innerHTML]="iconService.getIcon('Investment')"></div>
+        <div>
+          <p class="text-sm font-medium text-slate-500">Client-Facing Total</p>
+          <p class="text-2xl font-bold text-slate-800">{{ totalPrice() | currency:'EUR':'symbol' }}</p>
+          @if (totalPrice() !== internalTotalPrice()) {
+            <p class="text-xs text-slate-400 font-medium">Internal: {{ internalTotalPrice() | currency:'EUR':'symbol' }}</p>
+          }
+        </div>
+      </div>
+      <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-5">
+        <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0" [innerHTML]="iconService.getIcon('Effort')"></div>
+        <div>
+          <p class="text-sm font-medium text-slate-500">Client-Facing Effort</p>
+          <p class="text-2xl font-bold text-slate-800">{{ totalHours() }} hours</p>
+           @if (totalHours() !== internalTotalHours()) {
+            <p class="text-xs text-slate-400 font-medium">Internal: {{ internalTotalHours() }} hours</p>
+          }
+        </div>
+      </div>
+      <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col items-start gap-4">
+        <div class="flex items-center gap-5">
+          <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0" [innerHTML]="iconService.getIcon('Rate')"></div>
+          <div>
+            <p class="text-sm font-medium text-slate-500">Hourly Rate</p>
+            <p class="text-2xl font-bold text-slate-800">{{ q.pricePerHour | currency:'EUR':'symbol' }}</p>
+          </div>
+        </div>
+        @if (selectedDomain()?.rateComponents?.length) {
+          <div class="w-full pt-4 border-t border-slate-100 space-y-2">
+            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Rate Breakdown</h4>
+            <ul class="text-sm space-y-1">
+              @for (component of selectedDomain()!.rateComponents; track component.id) {
+                <li class="flex justify-between items-center">
+                  <span class="text-slate-600">{{ component.label }}</span>
+                  <span class="font-semibold text-slate-800">{{ component.value | currency:'EUR':'symbol' }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="border-b border-slate-200">
+      <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+        <button (click)="setActiveTab('estimation')" [class]="'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ' + (activeTab() === 'estimation' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300')">
+          Work Estimation
+        </button>
+        <button (click)="setActiveTab('details')" [class]="'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ' + (activeTab() === 'details' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300')">
+          Quote Details
+        </button>
+      </nav>
+    </div>
+
+    <!-- Tab Content -->
+    @if (activeTab() === 'estimation') {
+      <div class="space-y-6">
+        <!-- Quick Add Form -->
+        <div class="bg-white p-4 rounded-lg border border-slate-200/80 shadow-sm flex items-center gap-4 flex-wrap">
+          <input type="text" [(ngModel)]="newTaskTitle" (keydown.enter)="addTaskOnEnter()" placeholder="e.g. Discovery Phase" class="flex-grow w-full md:w-auto p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
+          <input type="number" [(ngModel)]="newTaskHours" class="w-24 p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="Hours">
+          <select [(ngModel)]="newTaskSectionId" class="flex-grow w-full md:w-auto p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm bg-white">
+            @for (sec of sections(); track sec.id) {
+              <option [value]="sec.id">{{ sec.title }}</option>
+            }
+          </select>
+          <button (click)="addNewTask()" class="bg-[#0800B9] text-white font-bold py-2 px-4 rounded-md hover:opacity-90 transition-opacity w-full md:w-auto">Add Task</button>
+          <button (click)="addNewSection()" class="bg-white text-slate-700 font-bold py-2 px-4 rounded-md border border-slate-300 hover:bg-slate-50 transition-colors w-full md:w-auto">Add Section</button>
+          <button (click)="openSectionsDrawer()" class="bg-white text-slate-700 font-bold py-2 px-4 rounded-md border border-slate-300 hover:bg-slate-50 transition-colors w-full md:w-auto">Manage Sections</button>
+        </div>
+
+        <!-- Drag & Drop Area -->
+        <div cdkDropListGroup class="space-y-6">
+          @for (section of sectionsWithItems(); track section.id) {
+            <div cdkDropList [cdkDropListData]="section.items" (cdkDropListDropped)="dropTask($event)" [id]="section.id" [class]="'p-4 bg-slate-100 rounded-lg transition-opacity ' + (section.isHidden ? 'opacity-50' : '')">
+              <!-- Section Header -->
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2" (dblclick)="startEditingSection(section.id)">
+                   <div cdkDragHandle class="cursor-grab text-slate-400 hover:text-slate-600" [innerHTML]="iconService.getIcon('DragHandle')"></div>
+                    @if (editingSectionId() === section.id) {
+                      <input
+                        id="section-input-{{section.id}}"
+                        type="text"
+                        [value]="section.title"
+                        (blur)="saveSectionTitle(section, $event)"
+                        (keydown.enter)="saveSectionTitle(section, $event)"
+                        class="text-lg font-bold text-slate-800 form-input-underline"
+                        [size]="section.title.length > 15 ? section.title.length : 15"
+                      >
+                    } @else {
+                      <h3 class="text-lg font-bold text-slate-800">{{ section.title }}</h3>
+                    }
+                </div>
+                <button (click)="deleteSection(section.id)" class="text-slate-400 hover:text-red-600 p-1" [innerHTML]="iconService.getIcon('Trash')"></button>
+              </div>
+              
+              <!-- Line Items -->
+              <div class="space-y-2">
+                @for (item of section.items; track item.id) {
+                  <div cdkDrag [cdkDragData]="item" [cdkDragDisabled]="section.isHidden" class="bg-white rounded-md border border-slate-200 shadow-sm flex items-center p-3 gap-3">
+                    <div cdkDragHandle [class]="'text-slate-300 ' + (section.isHidden ? 'cursor-not-allowed' : 'cursor-grab hover:text-slate-500')" [innerHTML]="iconService.getIcon('DragHandle')"></div>
+                    <div [class]="'flex-grow ' + (section.isHidden ? 'cursor-not-allowed' : 'cursor-pointer')" (click)="!section.isHidden && openDrawer(item)">
+                      <p class="font-medium text-slate-900">{{ item.title }}</p>
+                      <p class="text-xs text-slate-500">{{ item.description || 'No description' }}</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                      <span class="text-sm font-bold bg-slate-100 text-slate-600 px-3 py-1 rounded-full">{{ item.hours }}h</span>
+                      <button (click)="!section.isHidden && openDrawer(item)" [disabled]="section.isHidden" class="text-slate-500 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed" [innerHTML]="iconService.getIcon('Pencil')"></button>
+                      <button (click)="deleteLineItem(item.id)" [disabled]="section.isHidden" class="text-slate-500 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed" [innerHTML]="iconService.getIcon('Trash')"></button>
+                    </div>
+                  </div>
+                } @empty {
+                  <div class="text-center py-6 text-slate-500 border-2 border-dashed border-slate-300 rounded-lg">
+                    <p>Drop tasks here or add a new one.</p>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    } @else {
+      <!-- Quote Details/Settings Form -->
+      <div class="bg-white p-8 rounded-lg border border-slate-200/80 shadow-sm space-y-8">
+        <div class="space-y-4">
+          <h3 class="text-xl font-bold text-slate-800">Quote Settings</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <label class="block">
+              <span class="text-sm font-medium text-slate-600">Title</span>
+              <input type="text" [(ngModel)]="q.title" class="mt-1 block w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
+            </label>
+            <label class="block">
+              <span class="text-sm font-medium text-slate-600">Project</span>
+              <select [(ngModel)]="q.projectId" class="mt-1 block w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm bg-white">
+                <option value="">Select Reference</option>
+                @for(p of allProjects(); track p.id) { <option [value]="p.id">{{p.name}}</option> }
+              </select>
+            </label>
+            <label class="block">
+              <span class="text-sm font-medium text-slate-600">Stakeholder</span>
+              <select [(ngModel)]="q.contactId" class="mt-1 block w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm bg-white">
+                <option value="">Select Reference</option>
+                @for(c of allContacts(); track c.id) { <option [value]="c.id">{{c.name}}</option> }
+              </select>
+            </label>
+            <label class="block">
+              <span class="text-sm font-medium text-slate-600">Status</span>
+              <select [(ngModel)]="q.status" class="mt-1 block w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm bg-white">
+                @for(s of allStatuses; track s) { <option [value]="s">{{s}}</option> }
+              </select>
+            </label>
+            <label class="block md:col-span-2">
+              <span class="text-sm font-medium text-slate-600">Executive Summary</span>
+              <textarea [(ngModel)]="q.description" rows="4" class="mt-1 block w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"></textarea>
+            </label>
+          </div>
+        </div>
+        <div class="border-t border-slate-200"></div>
+        <div class="space-y-4">
+          <h3 class="text-xl font-bold text-slate-800">Technical Parameters</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <label class="block">
+              <span class="text-sm font-medium text-slate-600">Business Unit</span>
+              <select [ngModel]="q.businessDomainId" (ngModelChange)="onDomainChange($event)" class="mt-1 block w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm bg-white">
+                <option value="">Select Reference</option>
+                @for(d of allDomains(); track d.id) { <option [value]="d.id">{{d.name}}</option> }
+              </select>
+            </label>
+             <label class="block">
+              <span class="text-sm font-medium text-slate-600">Base Hourly Rate (€)</span>
+              <input type="number" [(ngModel)]="q.pricePerHour" class="mt-1 block w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
+            </label>
+             <label class="block">
+              <span class="text-sm font-medium text-slate-600">PPM Reference</span>
+              <input type="text" [(ngModel)]="q.ppmCode" class="mt-1 block w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
+            </label>
+             <label class="block">
+              <span class="text-sm font-medium text-slate-600">AFAS Project ID</span>
+              <input type="text" [(ngModel)]="q.afasCode" class="mt-1 block w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
+            </label>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Footer Actions -->
+    <div class="flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-slate-200">
+      <button class="text-sm font-bold text-slate-500 hover:text-red-600 transition-colors">Discard changes</button>
+      <div class="flex flex-wrap items-center gap-3">
+        <button class="text-sm font-bold text-slate-700 bg-slate-100 border border-slate-300 px-4 py-2 rounded-md hover:bg-slate-200 transition-colors">Save as Template</button>
+        <button (click)="exportToPdf()" class="text-sm font-bold text-slate-700 bg-slate-100 border border-slate-300 px-4 py-2 rounded-md hover:bg-slate-200 transition-colors">Export PDF</button>
+        <button (click)="previewClientLink()" class="text-sm font-bold text-blue-600 bg-blue-50 border border-blue-200 px-4 py-2 rounded-md hover:bg-blue-100 transition-colors">Preview Client Link</button>
+        <button (click)="saveAllChanges()" class="text-sm font-bold text-white bg-[#0800B9] px-6 py-2 rounded-md hover:opacity-90 transition-opacity shadow-lg">Save All Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Task Drawer -->
+  @if(isDrawerOpen() && selectedLineItem(); as item) {
+    <div class="fixed inset-0 z-[80]" (click)="closeDrawer()">
+      <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in"></div>
+      <div (click)="$event.stopPropagation()" class="fixed top-0 right-0 h-full w-[480px] bg-white shadow-2xl flex flex-col animate-slide-in">
+        <div class="flex items-center justify-between p-4 border-b border-slate-200 shrink-0">
+          <h2 class="text-xl font-bold text-slate-800">Edit Task</h2>
+          <button (click)="closeDrawer()" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full" [innerHTML]="iconService.getIcon('Close')"></button>
+        </div>
+        <div class="p-6 space-y-6 overflow-y-auto">
+          <label class="block">
+            <span class="text-sm font-medium text-slate-600">Title</span>
+            <input type="text" [ngModel]="item.title" (ngModelChange)="updateSelectedLineItem('title', $event)" class="mt-1 block w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
+          </label>
+          <label class="block">
+            <span class="text-sm font-medium text-slate-600">Hours</span>
+            <input type="number" [ngModel]="item.hours" (ngModelChange)="updateSelectedLineItem('hours', $event)" class="mt-1 block w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm">
+          </label>
+          <label class="block">
+            <span class="text-sm font-medium text-slate-600">Section</span>
+            <select [ngModel]="item.sectionId" (ngModelChange)="updateSelectedLineItem('sectionId', $event)" class="mt-1 block w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm bg-white">
+              @for (sec of sections(); track sec.id) {
+                <option [value]="sec.id">{{ sec.title }}</option>
+              }
+            </select>
+          </label>
+          <label class="block">
+            <span class="text-sm font-medium text-slate-600">Description / Jira Link</span>
+            <textarea [ngModel]="item.description" (ngModelChange)="updateSelectedLineItem('description', $event)" rows="5" class="mt-1 block w-full p-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"></textarea>
+          </label>
+        </div>
+        <div class="p-4 border-t border-slate-200 mt-auto flex justify-end gap-3 shrink-0">
+          <button (click)="closeDrawer()" class="text-sm font-bold text-slate-600 px-4 py-2 rounded-md hover:bg-slate-100 transition-colors">Cancel</button>
+          <button (click)="applyDrawerChanges()" class="text-sm font-bold text-white bg-[#0800B9] px-5 py-2 rounded-md hover:opacity-90 transition-opacity">Apply</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Sections Drawer -->
+  @if(isSectionsDrawerOpen()) {
+    <div class="fixed inset-0 z-[80]" (click)="closeSectionsDrawer()">
+      <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in"></div>
+      <div (click)="$event.stopPropagation()" class="fixed top-0 right-0 h-full w-[480px] bg-white shadow-2xl flex flex-col animate-slide-in">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-4 border-b border-slate-200 shrink-0">
+          <h2 class="text-xl font-bold text-slate-800">Manage Sections</h2>
+          <button (click)="closeSectionsDrawer()" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full" [innerHTML]="iconService.getIcon('Close')"></button>
+        </div>
+        <!-- Content -->
+        <div class="p-6 space-y-4 overflow-y-auto">
+          <p class="text-sm text-slate-500">Use the toggle to hide sections from the client-facing proposal. Hidden items will not be included in the final calculation shown to the client.</p>
+          @for(section of sections(); track section.id) {
+            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <span class="font-medium text-slate-700">{{section.title}}</span>
+              <label class="flex items-center cursor-pointer">
+                <span class="text-xs font-bold mr-3" [class.text-slate-400]="section.isHidden">{{ section.isHidden ? 'Hidden' : 'Visible' }}</span>
+                <div class="relative">
+                  <input type="checkbox" class="sr-only" [checked]="!section.isHidden" (change)="toggleSectionVisibility(section)">
+                  <div [class]="'block w-10 h-6 rounded-full transition-colors ' + (!section.isHidden ? 'bg-blue-600' : 'bg-slate-300')"></div>
+                  <div [class]="'dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ' + (!section.isHidden ? 'translate-x-full' : '')"></div>
+                </div>
+              </label>
+            </div>
+          }
+        </div>
+        <!-- Footer -->
+        <div class="p-4 border-t border-slate-200 mt-auto flex justify-end gap-3 shrink-0">
+          <button (click)="closeSectionsDrawer()" class="text-sm font-bold text-white bg-[#0800B9] px-5 py-2 rounded-md hover:opacity-90 transition-opacity">Done</button>
+        </div>
+      </div>
+    </div>
+  }
+
+} @else {
+  <div class="p-10 text-center">
+    <p class="text-slate-500">Loading quote...</p>
+  </div>
+}

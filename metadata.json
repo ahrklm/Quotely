@@ -1,0 +1,5 @@
+{
+  "name": "Quotely - AFKL Quoting Tool",
+  "description": "A professional internal tool for Air France-KLM to manage project quotes, business domains, contacts, and approval workflows, replacing legacy Excel-based processes. Ported from React to Angular.",
+  "requestFramePermissions": []
+}

@@ -1,0 +1,96 @@
+
+@if (isOpen()) {
+  <div class="fixed inset-0 z-[90] animate-in fade-in" (click)="closeModal()">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+    <div class="fixed inset-0 flex items-start justify-center p-4 sm:p-6 md:p-20">
+      <div 
+        (click)="$event.stopPropagation()"
+        class="relative w-full max-w-[560px] bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col"
+      >
+        <!-- Input Section -->
+        <div class="p-4 border-b border-slate-100 flex items-center gap-3 shrink-0">
+          <div class="text-slate-400" [innerHTML]="iconService.getIcon('Search')"></div>
+          <input 
+            #searchInput
+            type="text" 
+            placeholder="Search quotes, projects, contacts..."
+            class="w-full bg-transparent focus:outline-none text-slate-800 placeholder:text-slate-400"
+            [value]="query()"
+            (input)="onQueryChange($event)"
+          />
+          @if (isLoading()) {
+            <div class="w-5 h-5 border-2 border-slate-300 border-t-blue-600 rounded-full animate-spin"></div>
+          }
+        </div>
+
+        <!-- Results Section -->
+        <div class="overflow-y-auto max-h-[400px]">
+          @if (query().length < 1) {
+            <!-- Recent Searches -->
+            @if (recentSearches().length > 0) {
+              <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-6 pt-4 pb-2">Recent</h4>
+              <ul>
+                @for (item of recentSearches(); track item.id; let i = $index) {
+                  <li>
+                    <button (click)="selectItemAndNavigate(item)" [class]="'w-full flex items-center justify-between px-6 py-3 transition-colors ' + (selectedIndex() === i ? 'bg-[#ECECFF] text-[#0800B9]' : 'text-slate-600 hover:bg-slate-50')">
+                      <div class="flex items-center gap-4">
+                        <div [innerHTML]="iconService.getIcon(item.iconName)"></div>
+                        <span class="font-medium">{{ item.label }}</span>
+                      </div>
+                      <div class="text-xs text-slate-400">{{ item.type }}</div>
+                    </button>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <div class="p-10 text-center text-slate-400">
+                <p>Start typing to search.</p>
+              </div>
+            }
+          } @else {
+            <!-- Search Results -->
+            @if (results().length > 0) {
+              @for (category of resultCategories(); track category) {
+                <div>
+                  <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-6 pt-4 pb-2">{{ category }}s</h4>
+                  <ul>
+                    @for (item of groupedResults()[category]; track item.id) {
+                      @let flatIndex = flatResults().indexOf(item);
+                      <li>
+                        <button (click)="selectItemAndNavigate(item)" [class]="'w-full flex items-center justify-between px-6 py-3 transition-colors ' + (selectedIndex() === flatIndex ? 'bg-[#ECECFF] text-[#0800B9]' : 'text-slate-600 hover:bg-slate-50')">
+                          <div class="flex items-center gap-4">
+                            <div [innerHTML]="iconService.getIcon(item.iconName)"></div>
+                            <span class="font-medium">{{ item.label }}</span>
+                          </div>
+                          <div class="flex items-center gap-2">
+                            @for (tag of item.tags; track tag) {
+                              <span class="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded">{{ tag }}</span>
+                            }
+                            <div [innerHTML]="iconService.getIcon('Enter')" class="ml-2"></div>
+                          </div>
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+            } @else if (!isLoading()) {
+              <div class="p-10 text-center text-slate-400">
+                <p>No results found for "{{ query() }}"</p>
+              </div>
+            }
+          }
+        </div>
+
+        <!-- Footer -->
+        <div class="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest px-6 shrink-0">
+          <div class="flex items-center gap-3">
+            <span><kbd class="font-sans">↑</kbd> <kbd class="font-sans">↓</kbd> to navigate</span>
+            <span><kbd class="font-sans">↵</kbd> to select</span>
+          </div>
+          <span><kbd class="font-sans">ESC</kbd> to close</span>
+        </div>
+      </div>
+    </div>
+  </div>
+}

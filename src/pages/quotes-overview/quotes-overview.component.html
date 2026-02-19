@@ -1,0 +1,155 @@
+<div class="p-6 md:p-10 space-y-8">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <h1 class="text-3xl font-bold text-[#0800B9]">Quotes</h1>
+    <button (click)="openCreateQuoteModal()" class="bg-[#0800B9] text-white font-bold py-2 px-5 rounded-full hover:opacity-90 transition-opacity shadow-lg">
+      + New Quote
+    </button>
+  </div>
+
+  <!-- Table Container -->
+  <div class="bg-white rounded-lg border border-slate-200/80 shadow-sm overflow-hidden">
+    <!-- Search Bar -->
+    <div class="p-4 border-b border-slate-200/80">
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>
+        </div>
+        <input 
+            type="text" 
+            placeholder="Search quotes..." 
+            class="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-md leading-5 bg-white placeholder-slate-500 focus:outline-none focus:placeholder-slate-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            [ngModel]="searchTerm()"
+            (ngModelChange)="onSearchChange($event)"
+        >
+      </div>
+    </div>
+    
+    <!-- Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left text-slate-600">
+        <thead class="text-xs text-white uppercase bg-[#0800B9] font-bold">
+          <tr>
+            <th scope="col" class="px-6 py-4">Name</th>
+            <th scope="col" class="px-6 py-4">Project</th>
+            <th scope="col" class="px-6 py-4">Price</th>
+            <th scope="col" class="px-6 py-4">Contact</th>
+            <th scope="col" class="px-6 py-4">Status</th>
+            <th scope="col" class="px-6 py-4">Updated</th>
+            <th scope="col" class="px-6 py-4 text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (quote of paginatedQuotes(); track quote.id) {
+            <tr (click)="viewQuote(quote.id)" class="bg-white border-b border-slate-200/80 hover:bg-slate-50/80 transition-colors cursor-pointer">
+              <td class="px-6 py-4 font-bold text-slate-800">
+                {{ quote.title }}
+              </td>
+              <td class="px-6 py-4">{{ quote.projectName }}</td>
+              <td class="px-6 py-4 font-bold">{{ quote.totalPrice | currency:'EUR':'symbol' }}</td>
+              <td class="px-6 py-4">{{ quote.contactName }}</td>
+              <td class="px-6 py-4">
+                <span [class]="'px-2.5 py-1 text-xs font-bold rounded-full ' + getStatusClass(quote.status)">
+                  {{ quote.status }}
+                </span>
+              </td>
+              <td class="px-6 py-4">{{ quote.updatedAt | date:'yyyy-MM-dd' }}</td>
+              <td class="px-6 py-4 text-center">
+                <div class="relative inline-block">
+                  <button (click)="togglePopover(quote.id, $event)" class="text-slate-500 hover:text-blue-600 p-1 rounded-full hover:bg-slate-200 transition-colors">
+                    <div [innerHTML]="iconService.getIcon('DotsMenu')"></div>
+                  </button>
+                  @if (activePopoverId() === quote.id) {
+                    <div class="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg border border-slate-200 z-10 text-left">
+                      <ul class="py-1">
+                        <li>
+                          <button (click)="previewQuote(quote.id, $event)" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors">
+                            Preview
+                          </button>
+                        </li>
+                        <li>
+                          <button (click)="duplicateQuote(quote.id, $event)" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors">
+                            Duplicate
+                          </button>
+                        </li>
+                        <li>
+                          <button (click)="deleteQuote(quote.id, $event)" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors">
+                            Delete
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
+                  }
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="text-center py-10 text-slate-500">
+                <p>No quotes found.</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="p-4 flex items-center justify-between text-xs text-slate-600">
+        <div class="flex items-center gap-2">
+            <span>Nb items per page:</span>
+            <select [ngModel]="itemsPerPage()" (change)="onItemsPerPageChange($event)" class="border border-slate-300 rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                <option [value]="10">10</option>
+                <option [value]="25">25</option>
+                <option [value]="50">50</option>
+            </select>
+        </div>
+        <div class="flex items-center gap-4">
+            <span>{{ pageInfo() }}</span>
+            <div class="flex items-center gap-1">
+                <button (click)="previousPage()" [disabled]="currentPage() === 1" class="px-2 py-1 border border-slate-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100">
+                    &lt;
+                </button>
+                <button (click)="nextPage()" [disabled]="currentPage() === totalPages()" class="px-2 py-1 border border-slate-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100">
+                    &gt;
+                </button>
+            </div>
+        </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Quote Modal -->
+@if (isTemplateModalOpen()) {
+  <div class="fixed inset-0 z-[90] animate-in fade-in" (click)="closeCreateQuoteModal()">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+    <div class="fixed inset-0 flex items-center justify-center p-4">
+      <div (click)="$event.stopPropagation()" class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-8 animate-in zoom-in-95 duration-200 flex flex-col">
+        <h2 class="text-2xl font-bold text-slate-800">Create a New Quote</h2>
+        <p class="text-slate-500 mt-2">Start from scratch or use a template to save time.</p>
+        
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Blank Quote -->
+            <button (click)="createBlankQuote()" class="text-left p-6 border-2 border-slate-300 hover:border-blue-500 hover:bg-blue-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <h3 class="font-bold text-slate-800">Blank Quote</h3>
+                <p class="text-sm text-slate-500 mt-1">Start with a fresh, empty quote.</p>
+            </button>
+
+            <!-- From Template -->
+            <div class="text-left p-6 border border-slate-200 bg-slate-50 rounded-lg">
+                <h3 class="font-bold text-slate-800">From Template</h3>
+                <div class="mt-4 space-y-2 max-h-48 overflow-y-auto pr-2 -mr-2">
+                    @for (template of templates(); track template.id) {
+                        <button (click)="createQuoteFromTemplate(template.id)" class="w-full text-left p-3 bg-white hover:bg-slate-100 border border-slate-200 rounded-md transition-colors text-sm">
+                            <p class="font-medium text-slate-700">{{ template.title }}</p>
+                        </button>
+                    } @empty {
+                         <p class="text-sm text-slate-500">No templates available.</p>
+                    }
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

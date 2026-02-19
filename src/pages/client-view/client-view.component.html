@@ -1,0 +1,159 @@
+
+@if (quote(); as q) {
+  <div class="bg-white min-h-screen py-12 px-4 sm:px-6 lg:px-8 print-container">
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <!-- Header -->
+      <header class="afkl-gradient text-white p-10 relative">
+        <div class="flex items-center justify-between">
+          <img [ngSrc]="AFKL_LOGO_URL" alt="Air France-KLM Group" class="h-[32px] brightness-0 invert" width="164" height="32" />
+          <div class="bg-white/10 text-white text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full">
+            Proposal Date: {{ q.requestDate | date:'longDate' }}
+          </div>
+        </div>
+        <h1 class="text-5xl font-bold tracking-tight mt-8">{{ q.title }}</h1>
+        <p class="text-lg font-medium text-white/80 mt-2">{{ projectName() }}</p>
+        @if (contactName(); as name) {
+          <p class="text-sm font-medium text-white/80 mt-4">Created for: <span class="font-bold">{{ name }}</span></p>
+        }
+      </header>
+      
+      <main class="p-10 space-y-12">
+        <!-- Executive Summary -->
+        <section>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3">Executive Summary</h2>
+          <p class="text-slate-600 leading-relaxed">{{ q.description || 'No summary provided.' }}</p>
+        </section>
+        
+        <!-- Key Stats -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div class="bg-[#0800B9] text-white p-6 rounded-2xl col-span-2 md:col-span-1">
+            <p class="text-sm font-medium opacity-80">Total Investment</p>
+            <p class="text-4xl font-bold tracking-tight mt-1">{{ q.totalPrice | currency:'EUR':'symbol' }}</p>
+          </div>
+          <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200/80">
+            <p class="text-sm font-medium text-slate-500">Total Effort</p>
+            <p class="text-4xl font-bold tracking-tight text-slate-800 mt-1">{{ q.totalHours }}h</p>
+          </div>
+          <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200/80">
+            <p class="text-sm font-medium text-slate-500">Total Points</p>
+            <p class="text-4xl font-bold tracking-tight text-slate-800 mt-1">{{ q.totalPoints }}</p>
+          </div>
+          <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200/80">
+            <p class="text-sm font-medium text-slate-500">Hourly Rate</p>
+            <p class="text-4xl font-bold tracking-tight text-slate-800 mt-1">{{ q.pricePerHour | currency:'EUR':'symbol' }}</p>
+          </div>
+        </section>
+
+        <!-- Hourly Rate Breakdown -->
+        @if (domain()?.rateComponents?.length) {
+          <section>
+            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3">Hourly Rate Breakdown</h2>
+            <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200/80 max-w-md">
+                <ul class="space-y-2">
+                    @for (component of domain()!.rateComponents; track component.id) {
+                        <li class="flex justify-between items-center text-sm">
+                            <span class="text-slate-600">{{ component.label }}</span>
+                            <span class="font-semibold text-slate-800">{{ component.value | currency:'EUR':'symbol' }}</span>
+                        </li>
+                    }
+                    <li class="flex justify-between items-center pt-2 border-t border-slate-200 mt-2 font-bold">
+                        <span class="text-slate-800">Total Hourly Rate</span>
+                        <span class="text-slate-800">{{ q.pricePerHour | currency:'EUR':'symbol' }}</span>
+                    </li>
+                </ul>
+            </div>
+          </section>
+        }
+
+        <!-- Deliverables -->
+        <section>
+           <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-6">Deliverables</h2>
+           <div class="space-y-10">
+              @for (section of sectionsWithItems(); track section.id) {
+                <div>
+                  <h3 class="text-xl font-bold text-slate-800 mb-4 pb-2 border-b-2 border-blue-100">{{ section.title }}</h3>
+                  <div class="flow-root">
+                    <ul class="divide-y divide-slate-100">
+                      @for (item of section.items; track item.id) {
+                        <li class="py-4 flex justify-between items-start gap-4">
+                          <div>
+                            <p class="font-medium text-slate-900">{{ item.title }}</p>
+                            <p class="text-sm text-slate-500">{{ item.description }}</p>
+                          </div>
+                          <span class="text-sm font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-full shrink-0">{{ item.hours }}h</span>
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                </div>
+              }
+           </div>
+        </section>
+
+        <!-- Approval Section -->
+        <section class="pt-8 border-t border-slate-200/80">
+          @if (q.status === 'Approved') {
+            <div class="bg-green-50 border border-green-200 text-green-800 p-6 rounded-2xl text-center">
+              <h3 class="text-2xl font-bold">Proposal Approved</h3>
+              <p class="mt-2">This quote was approved on {{ q.updatedAt | date:'longDate' }}.</p>
+            </div>
+          } @else if (isApprovalAllowed()) {
+             <div class="bg-blue-50 border border-blue-200 text-blue-800 p-6 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div>
+                <h3 class="text-xl font-bold">Ready for Approval?</h3>
+                <p class="mt-1 text-sm text-blue-700">Please review the details above. Once approved, the quote will be locked.</p>
+              </div>
+              <button (click)="openModal()" class="bg-[#0800B9] text-white font-bold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-lg flex items-center gap-2 w-full sm:w-auto justify-center">
+                 <div [innerHTML]="iconService.getIcon('SealCheck')"></div>
+                 Approve & Sign
+              </button>
+            </div>
+          } @else {
+             <div class="bg-slate-100 border border-slate-200 text-slate-600 p-6 rounded-2xl text-center">
+              <h3 class="text-2xl font-bold">This quote is currently in a {{ q.status }} state.</h3>
+            </div>
+          }
+        </section>
+      </main>
+    </div>
+    <div class="text-center mt-8 no-print">
+      <button (click)="printPage()" class="text-slate-500 font-medium hover:text-blue-600 text-sm">
+        Print this page
+      </button>
+    </div>
+  </div>
+
+  <!-- EPFM Security Gate Modal -->
+  @if (isModalOpen()) {
+    <div class="fixed inset-0 z-[90] animate-in fade-in" (click)="closeModal()">
+      <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+      <div class="fixed inset-0 flex items-center justify-center p-4">
+        <div (click)="$event.stopPropagation()" class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 animate-in zoom-in-95 duration-200 flex flex-col text-center">
+          <h2 class="text-2xl font-bold text-slate-800">EPFM Authorization</h2>
+          <p class="text-slate-500 mt-2">Please enter your 5-digit EPFM number to digitally sign and approve this quote.</p>
+          
+          <div class="my-8">
+            <input 
+              type="text" 
+              maxlength="5"
+              [(ngModel)]="epfmCode"
+              class="w-full text-center text-4xl font-bold tracking-[1.5em] bg-slate-100 border-slate-300 rounded-lg p-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="-----"
+            />
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button (click)="closeModal()" class="w-full bg-slate-100 text-slate-700 font-bold py-3 px-4 rounded-lg hover:bg-slate-200 transition-colors">Cancel</button>
+            <button (click)="confirmApproval()" [disabled]="!isEpfmValid()" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition-colors disabled:bg-slate-300 disabled:cursor-not-allowed">
+              Confirm Approval
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+} @else {
+  <div class="flex items-center justify-center h-screen">
+    <div class="w-12 h-12 border-4 border-slate-300 border-t-blue-600 rounded-full animate-spin"></div>
+  </div>
+}

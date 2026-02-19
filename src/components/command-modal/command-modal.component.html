@@ -1,0 +1,38 @@
+@if (isOpen()) {
+  <div class="fixed inset-0 z-[90] animate-in fade-in" (click)="closeModal()">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+    <div class="fixed inset-0 flex items-start justify-center p-4 sm:p-6 md:p-20">
+      <div 
+        (click)="$event.stopPropagation()"
+        class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col"
+      >
+        <!-- Header -->
+        <div class="p-4 border-b border-slate-100 flex items-center gap-3 shrink-0">
+          <div class="text-slate-400" [innerHTML]="iconService.getIcon('Help')"></div>
+          <h2 class="text-slate-800 font-bold">Keyboard Shortcuts</h2>
+        </div>
+
+        <!-- Commands List -->
+        <div class="overflow-y-auto max-h-[400px] p-4">
+          @for(category of commandList; track category.category) {
+            <div class="mb-6">
+              <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-2 pb-2">{{ category.category }}</h4>
+              <ul>
+                @for(command of category.commands; track command.description) {
+                  <li class="flex items-center justify-between p-2 rounded-md hover:bg-slate-50">
+                    <span class="text-sm text-slate-600">{{ command.description }}</span>
+                    <div class="flex items-center gap-1">
+                      @for(key of command.keys; track key) {
+                        <kbd class="px-2 py-1 text-xs font-mono font-semibold text-slate-500 bg-slate-200 rounded-md">{{ key }}</kbd>
+                      }
+                    </div>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}

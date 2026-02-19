@@ -1,0 +1,137 @@
+
+<div class="p-12 max-w-[1000px] mx-auto space-y-16 pb-24">
+    <div class="space-y-4">
+      <h1 class="text-4xl font-bold afkl-text-primary border-b pb-4 leading-tight">Quotely — Technical & Functional Guide</h1>
+      <p class="text-slate-500 font-medium italic">Internal System Documentation for Air France-KLM Project Management</p>
+    </div>
+    <section class="space-y-6">
+      <h2 class="text-2xl font-bold flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg afkl-bg-primary text-white flex items-center justify-center text-sm">01</span>
+        Core Concept
+      </h2>
+      <p class="text-slate-600 leading-relaxed">
+        Quotely is a high-fidelity internal utility designed to standardize the project estimation lifecycle. It bridges the gap between raw developer estimates and formal business proposals, replacing fragmented Excel files with a centralized, token-secured web platform.
+      </p>
+    </section>
+
+    <section class="space-y-6">
+      <h2 class="text-2xl font-bold flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg afkl-bg-primary text-white flex items-center justify-center text-sm">02</span>
+        Feature Deep-Dive
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+          <h4 class="font-bold text-slate-800 mb-2">Smart Duplication</h4>
+          <p class="text-sm text-slate-500 leading-relaxed">
+            When duplicating a Quote or Template, the system performs a "Deep Copy". It maps new UUIDs for every Phase (Section) and Line Item, maintaining the original hierarchical relationships so that tasks remain assigned to their correct phases in the new copy.
+          </p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+          <h4 class="font-bold text-slate-800 mb-2">EPFM Security Gate</h4>
+          <p class="text-sm text-slate-500 leading-relaxed">
+            External approvals via the Client Link require a mandatory 5-digit EPFM (External Project Finance Management) number. This acts as a digital signature, ensuring that only authorized stakeholders can transition a quote to the 'Approved' state.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-6">
+      <h2 class="text-2xl font-bold flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg afkl-bg-primary text-white flex items-center justify-center text-sm">03</span>
+        The Workflow Engine
+      </h2>
+      <div class="space-y-4">
+        <div class="flex items-start gap-4 p-4 hover:bg-slate-50 rounded-xl transition-colors">
+          <div class="w-2 h-2 rounded-full bg-slate-400 mt-2"></div>
+          <div>
+            <span class="font-bold text-slate-800">Draft / Internal:</span>
+            <p class="text-sm text-slate-500">The default state for new estimates. Full CRUD permissions for dev teams to define phases and tasks.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-4 p-4 hover:bg-slate-50 rounded-xl transition-colors">
+          <div class="w-2 h-2 rounded-full bg-blue-500 mt-2"></div>
+          <div>
+            <span class="font-bold text-slate-800">Shared (Pending Review):</span>
+            <p class="text-sm text-slate-500">A tokenized URL is generated. The client can view the estimate but cannot yet approve it until it is officially submitted by the creator.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-4 p-4 hover:bg-slate-50 rounded-xl transition-colors">
+          <div class="w-2 h-2 rounded-full bg-green-500 mt-2"></div>
+          <div>
+            <span class="font-bold text-slate-800">Approved:</span>
+            <p class="text-sm text-slate-500">Locked state. Requires EPFM validation. Triggers a notification to finance (simulated via status update).</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-6">
+      <h2 class="text-2xl font-bold flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg afkl-bg-primary text-white flex items-center justify-center text-sm">04</span>
+        UI Standards (Design System)
+      </h2>
+      <div class="bg-slate-900 rounded-[32px] p-8 text-white space-y-4 overflow-hidden relative">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 blur-[100px] -mr-32 -mt-32"></div>
+        <p class="text-sm opacity-60 font-bold uppercase tracking-widest">Branding Specs</p>
+        <ul class="grid grid-cols-2 gap-4 text-xs">
+          <li class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-400"></span> Font: Montserrat (Bold for headers)</li>
+          <li class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-400"></span> Iconography: IBM Carbon Design</li>
+          <li class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-400"></span> Primary: #111EDC (AFKL Blue)</li>
+          <li class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-400"></span> Secondary: #009EE3 (KLM Sky)</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="space-y-6">
+      <h2 class="text-2xl font-bold flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg afkl-bg-primary text-white flex items-center justify-center text-sm">05</span>
+        Data Architecture
+      </h2>
+      <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-50 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+            <tr>
+              <th class="px-6 py-4">Entity</th>
+              <th class="px-6 py-4">Key Properties</th>
+              <th class="px-6 py-4">Relationship</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50 text-slate-600">
+            <tr>
+              <td class="px-6 py-4 font-bold text-slate-800">Quote</td>
+              <td class="px-6 py-4">ID, Title, Status, Totals, shareToken</td>
+              <td class="px-6 py-4">Root entity; holds projects & contacts</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 font-bold text-slate-800">QuoteLineItem</td>
+              <td class="px-6 py-4">Title, Hours, storyPoints, sortOrder</td>
+              <td class="px-6 py-4">Linked to Quote via quoteId</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 font-bold text-slate-800">QuoteSection</td>
+              <td class="px-6 py-4">Title, sortOrder</td>
+              <td class="px-6 py-4">Groups items within a Quote</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 font-bold text-slate-800">Metadata</td>
+              <td class="px-6 py-4">Project, Contact, Domain (Hourly Rates)</td>
+              <td class="px-6 py-4">Global reference tables</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="space-y-6">
+      <h2 class="text-2xl font-bold flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg afkl-bg-primary text-white flex items-center justify-center text-sm">06</span>
+        Data Integrity
+      </h2>
+      <div class="bg-amber-50 border border-amber-200 p-6 rounded-2xl flex gap-4">
+        <span class="text-2xl">⚠️</span>
+        <p class="text-sm text-amber-800 leading-relaxed">
+          <strong>Persistence:</strong> This version of Quotely uses <code class="bg-amber-100 px-1 rounded">localStorage</code> for persistence. Clearing browser data will reset the application to its initial mock state. Ensure critical quotes are exported to PDF before clearing cache.
+        </p>
+      </div>
+    </section>
+</div>
